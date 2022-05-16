@@ -1,6 +1,13 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateMessagesDto } from './dtos/create-messages.dto';
-
+import { MessagesService } from './messages.service';
 /*
 Controller: The controller decorator is used to define a class as a controller.
 Get: The get decorator is used to define a get method.
@@ -11,18 +18,27 @@ Param: The param decorator is used to define a path parameter.
 
 @Controller('messages')
 export class MessagesController {
+  constructor(public messagesService: MessagesService) {}
+
   @Get()
   listMessages() {
-    console.log('listing messages');
+    return this.messagesService.findAll();
   }
 
   @Post()
   createMessage(@Body() body: CreateMessagesDto) {
-    console.log(body);
+    return this.messagesService.create(body.content);
   }
 
   @Get('/:id')
-  getMessage(@Param() id: string) {
+  async getMessage(@Param() id: string) {
+    const message = await this.messagesService.findOne(id);
     console.log(id);
+
+    if (!message) {
+      throw new NotFoundException(`Message not found`);
+    }
+
+    return message;
   }
 }
